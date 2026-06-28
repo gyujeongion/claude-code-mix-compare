@@ -7,6 +7,8 @@ reverb — and translates the numbers into feedback an engineer can act on.
 *Think `git diff`, but for audio.* A [Claude Code](https://claude.com/claude-code) skill
 + a self-contained Python tool.
 
+![mix-compare demo](demo/mix-compare.gif)
+
 > **Read this first — where it's exact and where it's an estimate.** This is at its best
 > on **two bounces of the same mix through the same chain** (the normal revision case:
 > v4 → v5, mastering not yet changed). There, after time-alignment the phase-invert
