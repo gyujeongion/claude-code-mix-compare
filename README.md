@@ -1,8 +1,8 @@
 # Mix Compare
 
 **Compare two versions of a mix and hear exactly what changed.** Drop in the old and new
-bounce; it shows what moved — per stem, per EQ band, in stereo width, low-end phase, and
-reverb — and translates the numbers into feedback an engineer can act on.
+bounce. It shows what moved per stem, per EQ band, in stereo width, low-end phase and
+reverb, and turns the numbers into feedback an engineer can act on.
 
 *Think `git diff`, but for audio.* A [Claude Code](https://claude.com/claude-code) skill
 + a self-contained Python tool.
@@ -17,21 +17,21 @@ reverb — and translates the numbers into feedback an engineer can act on.
 > non-linear, so the cancellation leaves residue and `phase_diff` reads high even when
 > little "musically" changed. The full-mix EQ delta and loudness stay meaningful in that
 > case; the phase-diff % and fine per-stem deltas don't. See [Limits](#limits) — the docs
-> are honest about this rather than pretending the math is clean on a finished master.
+> say so instead of pretending the math is clean on a finished master.
 
 ---
 
 ## The gap it fills
 
 When a mix engineer sends a revision, "what actually changed between v4 and v5?" is
-weirdly hard to answer. Your ears adapt, gain differences fool you, and a change buried
+hard to answer. Your ears adapt, gain differences fool you, and a change buried
 in one stem is invisible in the full mix. The existing tools don't cover it:
 
 - **Reference A/B meters** compare your mix to a *reference track*, not to its own previous version.
 - **Single-file "AI feedback"** tools analyze one file in isolation.
 - **Audio aligners** align two files but don't diff them.
 
-mix-compare does the combination none of them do: **time-align the two versions →
+mix-compare combines what none of them do: **time-align the two versions →
 phase-invert to isolate only what moved → measure it per stem and per band → explain it
 in plain language.**
 
@@ -41,26 +41,24 @@ $ python3 compare.py mix_v4.wav mix_v5.wav --skip-stems --pretty
 #   low-end phase correlation, high-end noise, loudness
 ```
 
-Add `--diff-audio` and it writes a wav of *just the change* — play it and you literally
-hear what the engineer touched.
+Add `--diff-audio` and it writes a wav of *just the change*. Play it and you hear what the engineer touched.
 
 ## What it measures
 
-- **Time alignment** — cross-correlation lag, so the two versions line up sample-accurate.
-- **Phase-invert diff** — `new - old`, the isolated change, as RMS and % of the original.
-- **Full-mix EQ delta** — 10 octave bands, which got louder/quieter, plus spectral centroid.
-- **Per-stem diff** (optional, demucs) — vocals / bass / drums / other: level, peak,
+- **Time alignment**: cross-correlation lag, so the two versions line up sample-accurate.
+- **Phase-invert diff**: `new - old`, the isolated change, as RMS and % of the original.
+- **Full-mix EQ delta**: 10 octave bands, which got louder/quieter, plus spectral centroid.
+- **Per-stem diff** (optional, demucs): vocals / bass / drums / other: level, peak,
   stereo width, and a 7-band vocal EQ + reverb-tail (dry/wet) breakdown.
-- **Low-end phase** — per-band M/S width + phase correlation (catches the mono-compatibility
+- **Low-end phase**: per-band M/S width + phase correlation (catches the mono-compatibility
   problems that make a mix fall apart on different systems).
-- **High-end noise** — per-band spectral flatness (tone vs. noise).
-- **Loudness** (optional, pyloudnorm) — integrated LUFS + true-peak.
+- **High-end noise**: per-band spectral flatness (tone vs. noise).
+- **Loudness** (optional, pyloudnorm): integrated LUFS + true-peak.
 
 The companion [SKILL.md](skills/mix-compare/SKILL.md) carries field-tested interpretation
 heuristics (e.g. *vocal M/S width up >0.3dB → "floating vocal"; low-end phase corr <0.95 →
-mono-compatibility risk*) so the agent turns the JSON into engineer-ready notes, not a
-number dump. They're rules of thumb that have held up in practice, not lab-proven
-constants — treat them as a starting read, not a verdict.
+mono-compatibility risk*) so the agent writes notes an engineer can use instead of dumping numbers. They're rules of thumb that have held up in practice, not lab-proven
+constants. Treat them as a starting read, not a verdict.
 
 ### Verified to run (reproducible)
 
@@ -80,14 +78,14 @@ Largest change in: high-mid (2560-5120 Hz)
 PASS — 3 kHz localized to the high-mid band.
 ```
 
-The 3 kHz layer shows up largest in **high-mid (2.56–5.12 kHz)** — where 3 kHz actually
-lives — and spills into the neighbor bands through the band-pass filter skirts (the
+The 3 kHz layer shows up largest in **high-mid (2.56–5.12 kHz)** (where 3 kHz actually
+lives) and spills into the neighbor bands through the band-pass filter skirts (the
 filters aren't brick walls). That spill is exactly why the SKILL reads the *pattern*
 across bands, not a single band in isolation.
 
 ## Limits
 
-These are real — know them before you trust a number:
+Know these before you trust a number:
 
 - **Non-linear mastering breaks clean cancellation.** If the two files went through
   different bus compression / limiting / saturation, `new - old` won't cancel to silence;
@@ -104,8 +102,8 @@ These are real — know them before you trust a number:
   — cross-check against the full-mix `lowend_phase`.
 - **demucs on CPU** doubles the time for two files. Quick pass: `--skip-stems`.
 
-In short: it's a sharp, fast read of a same-chain revision, and a rough-but-useful one of
-anything else. The docs tell you which you're getting.
+In short: a sharp, fast read of a same-chain revision, and a rough but useful one of
+anything else.
 
 ## Install
 
@@ -118,7 +116,7 @@ pip install pyloudnorm                       # optional: loudness
 pip install demucs                           # optional: per-stem diff
 ```
 
-The required deps already give you alignment + phase diff + EQ + phase + noise. Stems and
+The required deps cover alignment + phase diff + EQ + phase + noise. Stems and
 loudness are optional add-ons; without demucs, run with `--skip-stems`.
 
 ## Usage
@@ -135,4 +133,4 @@ changed in v5". **Order matters: first = old, second = new; every delta is `new 
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Not affiliated with Anthropic.
+MIT, see [LICENSE](LICENSE). Not affiliated with Anthropic.
